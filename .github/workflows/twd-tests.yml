@@ -1,0 +1,67 @@
+name: TWD Tests
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v5
+
+      # Installs Node, pnpm and Vite+. The install itself runs below, after the
+      # Puppeteer cache is restored, so puppeteer's postinstall finds Chrome.
+      - uses: voidzero-dev/setup-vp@v1.21.2
+        with:
+          node-version: '24'
+          cache: true
+          run-install: false
+
+      - name: Cache Puppeteer browsers
+        uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+        with:
+          path: ~/.cache/puppeteer
+          key: ${{ runner.os }}-puppeteer-${{ hashFiles('pnpm-lock.yaml') }}
+          restore-keys: |
+            ${{ runner.os }}-puppeteer-
+
+      # puppeteer is in allowBuilds (pnpm-workspace.yaml): its postinstall
+      # downloads Chrome for twd-cli.
+      - name: Install dependencies
+        run: vp install
+
+      # Seconds, before any server starts: a broken test fails here, not in the
+      # browser. The twd-lint rules run inside vp lint (see vite.config.ts).
+      - name: Check format, lint (incl. TWD tests) and types
+        run: vp check
+
+      - name: Install mock service worker
+        run: vp exec twd-js init public --save
+
+      - name: Start dev server
+        run: |
+          nohup vp run dev:ci > vite.log 2>&1 &
+          timeout 60 bash -c 'until curl -s -o /dev/null http://localhost:5173; do sleep 1; done'
+        env:
+          CI: true
+
+      - name: Run TWD tests
+        run: vp exec twd-cli run
+
+      - name: TWD job summary
+        if: always()
+        run: vp exec twd-cli report .twd/report --format markdown >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Upload TWD report
+        if: always()
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: twd-report
+          path: .twd/report
+
+      - name: Display coverage
+        run: vp run collect:coverage:text

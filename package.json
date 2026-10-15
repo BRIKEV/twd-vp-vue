@@ -10,7 +10,12 @@
     "build-only": "vp build",
     "type-check": "vue-tsc --build",
     "format": "vp fmt src/",
-    "prepare": "vp config"
+    "prepare": "vp config",
+    "test:ci": "twd-cli run",
+    "dev:ci": "CI=true vp dev",
+    "collect:coverage:text": "nyc report --reporter=text --temp-dir .nyc_output --extension .ts --extension .vue",
+    "collect:coverage:html": "nyc report --reporter=html --temp-dir .nyc_output --extension .ts --extension .vue",
+    "collect:coverage:lcov": "nyc report --reporter=lcov --temp-dir .nyc_output --extension .ts --extension .vue"
   },
   "dependencies": {
     "pinia": "^4.0.3",
@@ -23,8 +28,13 @@
     "@vitejs/plugin-vue": "^6.0.8",
     "@vue/tsconfig": "^0.9.1",
     "npm-run-all2": "^9.0.3",
+    "nyc": "^18.0.0",
+    "twd-cli": "^1.10.0",
+    "twd-js": "^1.11.0",
+    "twd-lint": "^1.0.0",
     "typescript": "~6.0.0",
     "vite": "catalog:",
+    "vite-plugin-istanbul": "^9.0.1",
     "vite-plugin-vue-devtools": "^8.2.1",
     "vite-plus": "catalog:",
     "vue-tsc": "^3.3.11"

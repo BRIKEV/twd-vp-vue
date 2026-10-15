@@ -45,3 +45,7 @@ __screenshots__/
 .env
 .env.*
 !.env.example
+
+# TWD reports
+.twd/
+.nyc_output

@@ -1,0 +1,133 @@
+name: Record a PR's tests
+
+# Label a PR `record` and this records the tests the branch added, then comments
+# the link. Deliberately separate from the test workflow: a recording is
+# optional, the pull request it describes is not.
+#
+# Hand-written instead of BRIKEV/twd-cli/.github/actions/record because that
+# action calls npx, which this pnpm project's devEngines rejects.
+on:
+  pull_request:
+    types: [labeled]
+
+concurrency:
+  group: record-pr-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+
+jobs:
+  record:
+    if: github.event.label.name == 'record'
+    runs-on: ubuntu-latest
+    # Belt, not workaround: the CLI already guards against hangs, but a
+    # recording must never cost a caller more than a recording.
+    timeout-minutes: 15
+    permissions:
+      contents: read
+      pull-requests: write # comment the link, drop the label
+    env:
+      GH_TOKEN: ${{ github.token }}
+
+    steps:
+      # The PR head, not the merge commit: the point is to see the tests this
+      # branch built. fetch-depth: 0 because changed-since needs history, and a
+      # depth-1 clone does not contain the base commit at all.
+      - name: Checkout the PR head
+        uses: actions/checkout@v5
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+          fetch-depth: 0
+
+      - uses: voidzero-dev/setup-vp@v1.21.2
+        with:
+          node-version: '24'
+          cache: true
+          run-install: false
+
+      - name: Cache Puppeteer browsers
+        uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+        with:
+          path: ~/.cache/puppeteer
+          key: ${{ runner.os }}-puppeteer-${{ hashFiles('pnpm-lock.yaml') }}
+          restore-keys: |
+            ${{ runner.os }}-puppeteer-
+
+      - name: Install dependencies
+        run: vp install
+
+      # Puppeteer's screencast needs ffmpeg 8+ (-movflags hybrid_fragmented);
+      # ubuntu-24.04's apt package is 6.1.1 and cannot record. The gpl build
+      # carries libx264, which twd-cli uses to make the mp4 playable anywhere.
+      - name: Install ffmpeg 8
+        run: |
+          set -euo pipefail
+          DEST="$RUNNER_TEMP/twd-ffmpeg"
+          mkdir -p "$DEST"
+          curl -fsSL --retry 3 --retry-delay 2 \
+            https://github.com/BtbN/FFmpeg-Builds/releases/download/latest/ffmpeg-n8.1-latest-linux64-gpl-8.1.tar.xz \
+            -o "$RUNNER_TEMP/ffmpeg.tar.xz"
+          tar -xJf "$RUNNER_TEMP/ffmpeg.tar.xz" -C "$DEST" --strip-components=1
+          echo "$DEST/bin" >> "$GITHUB_PATH"
+          "$DEST/bin/ffmpeg" -version | head -n 1
+
+      - name: Install mock service worker
+        run: vp exec twd-js init public --save
+
+      # No coverage instrumentation needed for a recording: plain dev.
+      - name: Start dev server
+        run: |
+          nohup vp run dev > vite.log 2>&1 &
+          timeout 60 bash -c 'until curl -s -o /dev/null http://localhost:5173; do sleep 1; done'
+
+      # twd-cli is pinned by pnpm-lock.yaml, so an unchanged repo gives an
+      # unchanged recording.
+      - name: Record the tests this branch added
+        env:
+          BASE_SHA: ${{ github.event.pull_request.base.sha }}
+        run: vp exec twd-cli run --record --changed-since "$BASE_SHA"
+
+      # always(): a failed run can still have written a partial clip, and that
+      # clip is evidence. Zero clips is a normal outcome, not a failure.
+      - name: Count the clips
+        id: clips
+        if: always()
+        run: |
+          DIR=.twd/report/recordings
+          COUNT=0
+          if [ -d "$DIR" ]; then
+            COUNT=$(find "$DIR" -maxdepth 1 -type f \( -name '*.mp4' -o -name '*.webm' -o -name '*.gif' \) | wc -l | tr -d ' ')
+          fi
+          echo "count=$COUNT" >> "$GITHUB_OUTPUT"
+          echo "Recorded $COUNT clip(s)."
+
+      - name: Upload the recording
+        id: upload
+        if: always() && steps.clips.outputs.count != '' && steps.clips.outputs.count != '0'
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: twd-recording-pr-${{ github.event.pull_request.number }}
+          path: .twd/report/recordings
+          retention-days: 14
+          if-no-files-found: error
+
+      # Best effort: a fork PR gets a read-only token and cannot comment.
+      - name: Comment the link
+        if: always()
+        continue-on-error: true
+        env:
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+          CLIPS: ${{ steps.clips.outputs.count }}
+          VIDEO_URL: ${{ steps.upload.outputs.artifact-url }}
+        run: |
+          if [ "${CLIPS:-0}" = "0" ]; then
+            gh pr comment "$PR_NUMBER" --body "Nothing to record: this branch added no TWD tests."
+          else
+            gh pr comment "$PR_NUMBER" --body "Recording: ${CLIPS} clip(s), one per test this branch added — [download the artifact](${VIDEO_URL}) and unzip."
+          fi
+
+      # Dropping the label makes a retry one click instead of remove-then-add.
+      - name: Drop the label
+        if: always()
+        continue-on-error: true
+        env:
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+        run: gh pr edit "$PR_NUMBER" --remove-label record
