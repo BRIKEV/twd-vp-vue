@@ -210,8 +210,8 @@ importers:
         specifier: ^1.10.0
         version: 1.10.0(@types/json-schema@7.0.15)
       twd-js:
-        specifier: 1.12.0-beta.0
-        version: 1.12.0-beta.0(react-dom@19.3.1(react@19.3.1))(react@19.3.1)
+        specifier: 1.12.0-beta.1
+        version: 1.12.0-beta.1(react-dom@19.3.1(react@19.3.1))(react@19.3.1)
       twd-lint:
         specifier: ^1.0.0
         version: 1.0.0(supports-color@7.2.0)(typescript@6.0.3)
@@ -2331,8 +2331,8 @@ packages:
     engines: {node: '>=18.0.0'}
     hasBin: true
 
-  twd-js@1.12.0-beta.0:
-    resolution: {integrity: sha512-EM2xY6IxM8b0pMNTPJGNATiTlLj1C6x5bhpV3aD8IiEt9YBkIsqay5MaU6b3vWrkmlmjN2+VB4awJs3hFdcWDQ==}
+  twd-js@1.12.0-beta.1:
+    resolution: {integrity: sha512-c4fW7jmmE/VgU8El/VdgH1lTQYnGk/zJmKzGf9VGQLob/gXFGA/FqxnLWSqflyAMHjzahpbt1GNjkrm5lf4DIA==}
     engines: {node: '>=20'}
     hasBin: true
     peerDependencies:
@@ -4574,7 +4574,7 @@ snapshots:
       - utf-8-validate
       - yauzl
 
-  twd-js@1.12.0-beta.0(react-dom@19.3.1(react@19.3.1))(react@19.3.1):
+  twd-js@1.12.0-beta.1(react-dom@19.3.1(react@19.3.1))(react@19.3.1):
     dependencies:
       '@testing-library/dom': 10.4.2
       '@testing-library/user-event': 14.6.8(@testing-library/dom@10.4.2)
