@@ -12,7 +12,7 @@
     "format": "vp fmt src/",
     "prepare": "vp config",
     "test:ci": "twd-cli run",
-    "dev:ci": "CI=true vp dev",
+    "dev:ci": "CI=true NODE_ENV=production vp dev",
     "collect:coverage:text": "nyc report --reporter=text --temp-dir .nyc_output --extension .ts --extension .vue",
     "collect:coverage:html": "nyc report --reporter=html --temp-dir .nyc_output --extension .ts --extension .vue",
     "collect:coverage:lcov": "nyc report --reporter=lcov --temp-dir .nyc_output --extension .ts --extension .vue"

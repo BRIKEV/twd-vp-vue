@@ -51,6 +51,7 @@ export default defineConfig({
       exclude: ['node_modules', '**/*.twd.test.ts', '**/twd-tests/**'],
       requireEnv: !process.env.CI,
       extension: ['.ts', '.vue'],
+      checkProd: false,
     }),
   ]),
   resolve: {
