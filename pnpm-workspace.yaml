@@ -11,5 +11,5 @@ peerDependencyRules:
 allowBuilds:
   puppeteer: true
 minimumReleaseAgeExclude:
-  - twd-js@1.12.2
+  - twd-js@1.14.0
   - twd-cli@1.11.0
