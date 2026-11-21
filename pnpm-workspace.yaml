@@ -12,4 +12,4 @@ allowBuilds:
   puppeteer: true
 minimumReleaseAgeExclude:
   - twd-js@1.14.0
-  - twd-cli@1.11.0
+  - twd-cli@1.12.0

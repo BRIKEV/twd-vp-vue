@@ -207,8 +207,8 @@ importers:
         specifier: ^18.0.0
         version: 18.0.0(supports-color@7.2.0)
       twd-cli:
-        specifier: ^1.11.0
-        version: 1.11.0(@types/json-schema@7.0.15)
+        specifier: ^1.12.0
+        version: 1.12.0(@types/json-schema@7.0.15)
       twd-js:
         specifier: 1.14.0
         version: 1.14.0(react-dom@19.3.1(react@19.3.1))(react@19.3.1)
@@ -2276,8 +2276,8 @@ packages:
     resolution: {integrity: sha512-sf4i37nQ2LBx4m3wB74y+ubopq6W/dIzXg0FDGjsYnZHVa1Da8FH853wlL2gtUhg+xJXjfk3kUZS3BRoQeoQBQ==}
     engines: {node: '>=6'}
 
-  twd-cli@1.11.0:
-    resolution: {integrity: sha512-vVFsP1mIDTB738KXeAhgARW4hUztJAQvlycfAlKo/ceZ46HoYgz8jKofUH2JvRQYigwC7YIXIsw7rnBJhFwndQ==}
+  twd-cli@1.12.0:
+    resolution: {integrity: sha512-2SvSrx1RaJ58Vhc6wBliphPHxLyKF6W8T0VB8bM7JaAJWlfQxKH29mF565Kw4ZVIuwmVQYCJPyEnmLAoW8ytNQ==}
     engines: {node: '>=18.0.0'}
     hasBin: true
 
@@ -4445,7 +4445,7 @@ snapshots:
 
   totalist@3.0.1: {}
 
-  twd-cli@1.11.0(@types/json-schema@7.0.15):
+  twd-cli@1.12.0(@types/json-schema@7.0.15):
     dependencies:
       istanbul-lib-coverage: 3.2.2
       openapi-mock-validator: 0.3.0(@types/json-schema@7.0.15)
